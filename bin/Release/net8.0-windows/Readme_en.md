@@ -142,12 +142,10 @@ From the executable folder (`bin\Release\net8.0-windows` or the extracted RAR fo
 ## Verification Data
 
 - Script import/export routines verified against original DC2TY files.
-- Tested reference executable and release archives SHA-256:
+- Tested reference executable SHA-256:
 
 ```text
-c9b94b549406a71a073203e4de0087c889d6e7e55ed3ad350935a77ae185aadc  DC2TYMesTextTool_GUI.rar
-c7bd70335f9cabf313085ad3e10d6ed15dafb43910e41804c877fd0a57726aec  Released_patch.rar
-21988ca3227d494ad8fd816fd6363670b1a6245f82ac28314c4bb4e8353d19bd  DC2TY.EXE
+21988CA3227D494AD8FD816FD6363670B1A6245F82AC28314C4BB4E8353D19BD  DC2TY.EXE
 ```
 
 ## Building from Source
