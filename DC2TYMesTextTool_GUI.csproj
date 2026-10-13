@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DC2TYMesTextTool_GUI</RootNamespace>
+    <StartupObject>DC2TYMesTextTool_GUI.Program</StartupObject>
+    <AssemblyName>DC2TYMesTextTool_GUI</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DC2TYPatch a\**" />
+    <Compile Remove="bin\**" />
+    <Compile Remove="obj\**" />
+    <Compile Remove="_bin_patched\**" />
+    <Compile Remove="_obj_patched\**" />
+    <Compile Remove="_patched_tool\**" />
+    <EmbeddedResource Remove="DC2TYPatch a\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <EmbeddedResource Remove="_bin_patched\**" />
+    <EmbeddedResource Remove="_obj_patched\**" />
+    <EmbeddedResource Remove="_patched_tool\**" />
+    <None Remove="DC2TYPatch a\**" />
+    <None Remove="bin\**" />
+    <None Remove="obj\**" />
+    <None Remove="_bin_patched\**" />
+    <None Remove="_obj_patched\**" />
+    <None Remove="_patched_tool\**" />
+  </ItemGroup>
+
+</Project>
