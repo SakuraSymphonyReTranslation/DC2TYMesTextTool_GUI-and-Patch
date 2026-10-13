@@ -2,7 +2,7 @@
 
 **Bahasa Indonesia** | [English](Readme_en.md)
 
-Importer/exporter naskah skenario dan patch runtime untuk **D.C.II To You ~Da Capo II~ Side Episodes** (Da Capo 2 To You).
+Importer/exporter naskah skenario dan patch runtime untuk **D.C.II To You ～Da Capo II～ Side Episodes** (Da Capo 2 To You).
 
 Distribusi ini hanya mendukung **Da Capo 2 To You** (`dc2ty`, versi MES `0x5F69`). GUI, CLI, tabel referensi C++, patch, dan launcher dikhususkan untuk game ini. Source utama patch berada di `DC2TYPatch a/src/dc2typatch.cpp`.
 

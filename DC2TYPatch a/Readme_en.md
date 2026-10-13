@@ -2,7 +2,7 @@
 
 [Bahasa Indonesia](README.md) | **English**
 
-Runtime patch and custom launcher dedicated to **D.C.II To You ~Da Capo II~ Side Episodes** (Da Capo II To You). Main implementation sources: patch `src/dc2typatch.cpp` and launcher `src/launcher.cpp`.
+Runtime patch and custom launcher dedicated to **D.C.II To You ～Da Capo II～ Side Episodes** (Da Capo II To You). Main implementation sources: patch `src/dc2typatch.cpp` and launcher `src/launcher.cpp`.
 
 ## Directory Structure
 

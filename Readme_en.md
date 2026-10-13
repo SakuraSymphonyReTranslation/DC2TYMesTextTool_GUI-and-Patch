@@ -2,7 +2,7 @@
 
 [Bahasa Indonesia](README.md) | **English**
 
-Scenario script importer/exporter and runtime patch for **D.C.II To You ~Da Capo II~ Side Episodes** (Da Capo 2 To You).
+Scenario script importer/exporter and runtime patch for **D.C.II To You ～Da Capo II～ Side Episodes** (Da Capo 2 To You).
 
 This distribution specifically supports **Da Capo 2 To You** (`dc2ty`, MES version `0x5F69`). The GUI, CLI, C++ reference tables, patch, and launcher are tailored specifically for this game. The primary patch source code is located in `DC2TYPatch a/src/dc2typatch.cpp`.
 
