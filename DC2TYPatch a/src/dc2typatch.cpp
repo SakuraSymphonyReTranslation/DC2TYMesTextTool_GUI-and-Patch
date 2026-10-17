@@ -17,6 +17,7 @@
 #include <string_view>
 #include <vector>
 #include <ctype.h>
+#include "choice_layout.h"
 
 static std::string DiagWideToUtf8(LPCWSTR text) {
   if (!text || IS_INTRESOURCE(text))
@@ -11160,6 +11161,138 @@ static void(__cdecl *DrawSystemGlyph_11220)(int, int, const BYTE *, int) = NULL;
 static void(__cdecl *Real_SystemLabel_24240)(int, int, int, const char *, int) = NULL;
 static thread_local bool g_suppressSystemPopupGlyphs = false;
 
+// EXE+1C2C0 draws text layers belonging to UI button records. Only an owned
+// story button whose expanded label starts with the choice marker is eligible.
+// The scope is absent from dialogue, save/replay lists and popup labels.
+static char(__cdecl *Real_StoryChoiceLayer_1C2C0)(const int *, const char *) = NULL;
+static void(__cdecl *SetStoryChoiceClip_DE00)(int, int, int, int) = NULL;
+static BYTE *g_storyChoiceExe = nullptr;
+static thread_local const RECT *g_storyChoicePanel = nullptr;
+static thread_local bool g_suppressStoryChoiceGlyphs = false;
+
+static bool GetStoryChoicePanel(const int *layer, RECT &panel) {
+  if (!g_storyChoiceExe || g_fontManager.GetLanguage() == 0)
+    return false;
+  if (*(const int *)(g_storyChoiceExe + 0x6D43C4) != 9)
+    return false;
+  const BYTE *buttons = *(const BYTE **)(g_storyChoiceExe + 0x105494);
+  int count = *(const int *)(g_storyChoiceExe + 0x65CA94);
+  constexpr size_t buttonSize = 880, firstLayer = 52, layerSize = 44;
+  uintptr_t start = (uintptr_t)buttons, address = (uintptr_t)layer;
+  if (!buttons || count <= 0 || count > 256 || address < start)
+    return false;
+  size_t offset = address - start;
+  size_t within = offset % buttonSize;
+  if (offset / buttonSize >= (size_t)count || within < firstLayer ||
+      (within - firstLayer) % layerSize ||
+      (within - firstLayer) / layerSize >= 16 ||
+      !IsReadablePtr(buttons + offset - within, buttonSize))
+    return false;
+  const int *button = (const int *)(buttons + offset - within);
+  panel = {button[3], button[4], button[5], button[6]};
+  return panel.left >= 0 && panel.top >= 0 && panel.right <= 800 &&
+         panel.bottom <= 600 && panel.right - panel.left >= 64 &&
+         panel.bottom - panel.top >= 24 && panel.bottom - panel.top <= 64 &&
+         layer[0] >= panel.left && layer[0] < panel.right &&
+         layer[1] >= panel.top && layer[1] < panel.bottom;
+}
+
+static char __cdecl Hook_StoryChoiceLayer_1C2C0(const int *layer,
+                                               const char *text) {
+  RECT panel = {};
+  const RECT *previous = g_storyChoicePanel;
+  g_storyChoicePanel = GetStoryChoicePanel(layer, panel) ? &panel : nullptr;
+  // Preserve the native variable expansion, background and cursor handling.
+  char result = Real_StoryChoiceLayer_1C2C0(layer, text);
+  g_storyChoicePanel = previous;
+  return result;
+}
+
+static bool ReadStoryChoiceLabel(const char *text, std::wstring &label) {
+  if (!text)
+    return false;
+  for (int length = 0; length < 256; ++length) {
+    if (!IsReadablePtr(text + length, 1))
+      return false;
+    if (!text[length]) {
+      if (!length)
+        return false;
+      wchar_t wide[256];
+      int chars = MultiByteToWideChar(932, MB_ERR_INVALID_CHARS, text, length,
+                                      wide, 256);
+      // Check decoded characters: 0x40 is also the trail byte of a CP932
+      // ideographic space, so a byte-level '@' check would reject every gap.
+      std::wstring decoded(wide, chars > 0 ? chars : 0);
+      return chars > 0 && decoded.find(L'@') == std::wstring::npos &&
+             choice_layout::Normalize(decoded, label);
+    }
+  }
+  return false;
+}
+
+static void DrawStoryChoiceBitmap(const choice_layout::Bitmap &bitmap,
+                                   const RECT &panel, int color, int offset) {
+  int drawX = panel.left + 12 + offset;
+  int drawY = panel.top + (panel.bottom - panel.top - bitmap.height) / 2 + offset;
+  for (int start = 0; start < bitmap.width; start += 28) {
+    BYTE tile[28 * 28] = {};
+    int width = min(28, bitmap.width - start);
+    for (int row = 0; row < bitmap.height; ++row)
+      memcpy(tile + row * 28,
+             bitmap.pixels.data() + row * bitmap.width + start, width);
+    DrawSystemGlyph_11220(drawX + start, drawY, tile, color);
+  }
+}
+
+static bool RenderStoryChoiceLabel(int x, int y, int lineHeight,
+                                    const char *text, int style) {
+  if (!g_storyChoicePanel || !DrawSystemGlyph_11220 || !SetStoryChoiceClip_DE00)
+    return false;
+  std::wstring label;
+  if (!ReadStoryChoiceLabel(text, label))
+    return false;
+  const RECT panel = *g_storyChoicePanel;
+  // Reserve the final pixel for the native shadow.
+  int maxWidth = panel.right - panel.left - 25;
+  int maxHeight = min(28, panel.bottom - panel.top - 9);
+  std::wstring key = std::to_wstring(maxWidth) + L":" +
+                     std::to_wstring(maxHeight) + L":" + label;
+  static thread_local std::map<std::wstring, choice_layout::Bitmap> cache;
+  auto found = cache.find(key);
+  if (found == cache.end()) {
+    choice_layout::Bitmap built;
+    if (!choice_layout::Build(label, maxWidth, maxHeight,
+                              Real_GetTextExtentPoint32W,
+                              Real_GetGlyphOutlineW, built))
+      return false;
+    if (cache.size() >= 128)
+      cache.clear();
+    found = cache.emplace(key, std::move(built)).first;
+    char message[256];
+    sprintf_s(message,
+              "[CHOICE-LAYOUT] chars=%u panel=(%ld,%ld,%ld,%ld) bitmap=%dx%d margin=12",
+              (unsigned)label.size(), panel.left, panel.top, panel.right,
+              panel.bottom, found->second.width, found->second.height);
+    LogHsxf4Probe(message);
+  }
+  bool previous = g_suppressStoryChoiceGlyphs;
+  g_suppressStoryChoiceGlyphs = true;
+  Real_SystemLabel_24240(x, y, lineHeight, text, style);
+  g_suppressStoryChoiceGlyphs = previous;
+  // EXE+DE00 intersects with the engine's outer clip. Restore the exact
+  // per-layer clip afterward so later UI and textbox drawing are unaffected.
+  int *clip = (int *)(g_storyChoiceExe + 0x8C8678);
+  int savedClip[4];
+  memcpy(savedClip, clip, sizeof(savedClip));
+  SetStoryChoiceClip_DE00(panel.left + 12, panel.top + 4,
+                         panel.right - 12, panel.bottom - 4);
+  if (style & 0x80)
+    DrawStoryChoiceBitmap(found->second, panel, (style & 0x3f) ? 0 : 9, 1);
+  DrawStoryChoiceBitmap(found->second, panel, style & 0x3f, 0);
+  memcpy(clip, savedClip, sizeof(savedClip));
+  return true;
+}
+
 struct PopupLabelBitmap {
   int width = 0;
   int height = 0;
@@ -11299,7 +11432,7 @@ static bool BuildSystemPopupBitmap(const std::string &label,
 
 static void __cdecl Hook_SystemText_11710(int x, int y, const char *text,
                                          int color, int size) {
-  if (!g_suppressSystemPopupGlyphs)
+  if (!g_suppressSystemPopupGlyphs && !g_suppressStoryChoiceGlyphs)
     Real_SystemText_11710(x, y, text, color, size);
 }
 
@@ -11319,6 +11452,8 @@ static void DrawSystemPopupBitmap(const PopupLabelBitmap &bitmap, int color,
 
 static void __cdecl Hook_SystemLabel_24240(int x, int y, int lineHeight,
                                           const char *text, int style) {
+  if (RenderStoryChoiceLabel(x, y, lineHeight, text, style))
+    return;
   std::string label;
   const PopupLabelBitmap *bitmap = nullptr;
   // Match the entire known confirmation and its panel position. Other UI
@@ -13042,6 +13177,22 @@ static void InitPatch() {
           (void(__cdecl *)(int, int, int, const char *, int))systemLabel;
       DetourAttach(&(PVOID &)Real_SystemText_11710, Hook_SystemText_11710);
       DetourAttach(&(PVOID &)Real_SystemLabel_24240, Hook_SystemLabel_24240);
+      BYTE *choiceLayer = (BYTE *)hExe + 0x1C2C0;
+      BYTE *choiceClip = (BYTE *)hExe + 0xDE00;
+      const BYTE choiceSignature[] = {0x8B, 0x44, 0x24, 0x08, 0x81,
+                                      0xEC, 0x00, 0x01, 0x00, 0x00};
+      // The absolute operand also verifies the clip globals for this build.
+      const BYTE clipSignature[] = {0xA1, 0x94, 0x86, 0xCC, 0x00, 0x56, 0x57};
+      if (memcmp(choiceLayer, choiceSignature, sizeof(choiceSignature)) == 0 &&
+          memcmp(choiceClip, clipSignature, sizeof(clipSignature)) == 0) {
+        g_storyChoiceExe = (BYTE *)hExe;
+        SetStoryChoiceClip_DE00 =
+            (void(__cdecl *)(int, int, int, int))choiceClip;
+        Real_StoryChoiceLayer_1C2C0 =
+            (char(__cdecl *)(const int *, const char *))choiceLayer;
+        DetourAttach(&(PVOID &)Real_StoryChoiceLayer_1C2C0,
+                     Hook_StoryChoiceLayer_1C2C0);
+      }
     }
     Real_Hsxf4_22BB0 =
         (DWORD(__cdecl *)(DWORD, DWORD, DWORD, DWORD))((BYTE *)hExe + 0x22BB0);
@@ -13118,6 +13269,9 @@ static void CleanupPatch() {
     DetourDetach(&(PVOID &)Real_Hsxf4_22BB0, Hook_Hsxf4_22BB0);
   if (Real_SystemLabel_24240)
     DetourDetach(&(PVOID &)Real_SystemLabel_24240, Hook_SystemLabel_24240);
+  if (Real_StoryChoiceLayer_1C2C0)
+    DetourDetach(&(PVOID &)Real_StoryChoiceLayer_1C2C0,
+                 Hook_StoryChoiceLayer_1C2C0);
   if (Real_SystemText_11710)
     DetourDetach(&(PVOID &)Real_SystemText_11710, Hook_SystemText_11710);
   DetourDetach(&(PVOID &)Real_GetGlyphOutlineA, Hook_GetGlyphOutlineA);

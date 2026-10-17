@@ -9,6 +9,7 @@ bin/Debug/
 *.dmp
 DC2TYPatch a/.venv/
 DC2TYPatch a/__pycache__/
-DC2TYPatch a/build/*
-!DC2TYPatch a/build/Released/
-!DC2TYPatch a/build/Released/**
+DC2TYPatch a/build-local/
+# Keep the complete published build directory, including generated logs.
+!DC2TYPatch a/build/
+!DC2TYPatch a/build/**

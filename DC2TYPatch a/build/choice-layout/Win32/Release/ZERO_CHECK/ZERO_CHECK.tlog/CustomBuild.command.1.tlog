@@ -1,0 +1,10 @@
+^E:\GAMES\DC2TY\DC2TYMESTEXTTOOL_GUI-AND-PATCH\DC2TYPATCH A\BUILD\CHOICE-LAYOUT\CMAKEFILES\0DB8251D8885662E70302FEFD56D6E0C\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SE:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a" "-BE:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/DC2TYPatch.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

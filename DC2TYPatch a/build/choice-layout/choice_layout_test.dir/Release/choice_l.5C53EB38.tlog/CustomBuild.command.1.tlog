@@ -1,0 +1,10 @@
+^E:\GAMES\DC2TY\DC2TYMESTEXTTOOL_GUI-AND-PATCH\DC2TYPATCH A\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SE:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a" "-BE:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout" --check-stamp-file "E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

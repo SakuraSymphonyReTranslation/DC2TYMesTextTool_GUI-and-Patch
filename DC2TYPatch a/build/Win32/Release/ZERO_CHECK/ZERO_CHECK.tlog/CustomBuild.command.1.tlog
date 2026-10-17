@@ -1,0 +1,10 @@
+^E:\GAMES\DC2TY\DC2TYMESTEXTTOOL_GUI - COPY\DC2TYPATCH A\BUILD\CMAKEFILES\0E9AA4A837A76A1D7C224CDDCBEC403D\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SE:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a" "-BE:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/DC2TYPatch.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

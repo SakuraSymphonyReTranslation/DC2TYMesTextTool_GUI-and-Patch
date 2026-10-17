@@ -1,0 +1,7 @@
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/detours.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/DC2TYPatch.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/DC2TYLauncher.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/choice_layout_test.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/RUN_TESTS.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/ALL_BUILD.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/CMakeFiles/ZERO_CHECK.dir

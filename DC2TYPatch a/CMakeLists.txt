@@ -58,3 +58,12 @@ target_link_libraries(DC2TYLauncher PRIVATE
 )
 
 target_compile_definitions(DC2TYLauncher PRIVATE GAME_DC2TY)
+
+option(DC2TY_BUILD_CHOICE_TESTS "Build the standalone choice typography checks" OFF)
+if(DC2TY_BUILD_CHOICE_TESTS)
+    enable_testing()
+    add_executable(choice_layout_test tests/choice_layout_test.cpp)
+    target_include_directories(choice_layout_test PRIVATE src)
+    target_link_libraries(choice_layout_test PRIVATE gdi32 user32)
+    add_test(NAME choice_layout COMMAND choice_layout_test)
+endif()

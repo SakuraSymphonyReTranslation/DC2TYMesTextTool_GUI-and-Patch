@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="E:\Games\DC2TY\DC2TYMesTextTool_GUI - Copy\DC2TYPatch a\build\CMakeFiles\0e9aa4a837a76a1d7c224cddcbec403d\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{6C099974-EA17-3382-8F43-18667BD949E3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,29 @@
+Start testing: Oct 17 19:18 SE Asia Standard Time
+----------------------------------------------------------
+1/1 Testing: choice_layout
+1/1 Test: choice_layout
+Command: "E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout/Release/choice_layout_test.exe"
+Directory: E:/Games/DC2TY/DC2TYMesTextTool_GUI-and-Patch/DC2TYPatch a/build/choice-layout
+"choice_layout" start time: Oct 17 19:18 SE Asia Standard Time
+Output:
+----------------------------------------------------------
+PASS chars=13 available=455 bitmap=172x26
+PASS chars=13 available=160 bitmap=155x23
+PASS chars=18 available=455 bitmap=244x26
+PASS chars=18 available=160 bitmap=157x17
+PASS chars=22 available=455 bitmap=304x26
+PASS chars=22 available=160 bitmap=160x17
+PASS chars=52 available=455 bitmap=445x19
+PASS chars=52 available=160 bitmap=160x17
+PASS chars=222 available=455 bitmap=455x13
+PASS chars=222 available=160 bitmap=160x13
+Choice layout checks passed.
+<end of output>
+Test time =   0.27 sec
+----------------------------------------------------------
+Test Passed.
+"choice_layout" end time: Oct 17 19:18 SE Asia Standard Time
+"choice_layout" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 17 19:18 SE Asia Standard Time

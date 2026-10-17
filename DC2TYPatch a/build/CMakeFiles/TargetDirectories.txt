@@ -1,0 +1,5 @@
+E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/CMakeFiles/detours.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/CMakeFiles/DC2TYPatch.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/CMakeFiles/DC2TYLauncher.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/CMakeFiles/ALL_BUILD.dir
+E:/Games/DC2TY/DC2TYMesTextTool_GUI - Copy/DC2TYPatch a/build/CMakeFiles/ZERO_CHECK.dir

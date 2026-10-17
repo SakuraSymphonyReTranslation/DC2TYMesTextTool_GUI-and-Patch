@@ -10,6 +10,8 @@ Distribusi ini hanya mendukung **Da Capo 2 To You** (`dc2ty`, versi MES `0x5F69`
 
 Unduh kedua paket terbaru dari [GitHub Releases](https://github.com/SakuraSymphonyReTranslation/DC2TYMesTextTool_GUI-and-Patch/releases/latest):
 
+Release **v1.0.0** diperbarui pada **17 Oktober 2026** dengan tata letak choice yang lebih rapat dan pemeriksaan konversi label `○`.
+
 - **DC2TYMesTextTool_GUI.rar**: Importer/exporter MES ↔ JSON (GUI dan CLI), termasuk dokumentasi bahasa Indonesia dan Inggris.
 - **Released_patch.rar**: Launcher kustom (`DC2TYLauncher.exe`), DLL patch (`DC2TYPatch.dll`), konfigurasi INI (`DC2TYPatch.ini`), reference executable (`DC2TY.exe`), dan library Locale Emulator.
 
@@ -71,7 +73,27 @@ Ekspor dari tab Single File dan Batch selalu menggunakan format gabungan nama/di
 4. Atur **Word Wrap Width**: default **70** pada Single File, Batch, dan CLI. Jika teks tampak terlalu panjang atau sempit pada dialog box di game, nilai ini dapat disesuaikan.
 5. Klik **Import (JSON -> MES)**.
 
-Importer menerima JSON gabungan, format legacy, serta campuran keduanya. Jumlah token teks dan struktur label dicocokkan dengan MES asli untuk menjamin integritas alur permainan.
+Importer menerima JSON gabungan, format legacy, serta campuran keduanya. MES asli digunakan sebagai template untuk menyusun kembali naskah dan memperbarui offset label. Pertahankan urutan entri JSON dan simpan hasil impor ke file terpisah.
+
+### Label Choice `○`
+
+Tulis label choice di kolom `message`, dengan satu spasi biasa setelah `○` dan di antara kata:
+
+```json
+[
+  { "message": "○ Panggil Bos" },
+  { "message": "○ Panggil Pangeran" },
+  { "message": "○ Panggil Shinemon-san" }
+]
+```
+
+Contoh di atas hanya memperlihatkan entri choice; saat mengimpor, gunakan JSON lengkap hasil ekspor dengan urutan entri yang sama. Simbol `○` dipertahankan pada MES → JSON dan JSON → MES melalui GUI maupun CLI, termasuk mode Batch yang memakai mesin konversi yang sama.
+
+Spasi choice disimpan sebagai U+3000 di MES agar tidak berubah menjadi terminator NUL saat enkripsi. Exporter mengembalikannya menjadi spasi biasa di JSON. Tidak perlu mengganti lingkaran, menambahkan spasi ganda, atau mengedit byte MES secara manual.
+
+Patch runtime terbaru merapikan tampilan choice cerita berawalan `○` pada mode terjemahan: margin kiri **12 px**, font Arial proporsional, dan satu spasi visual antarkata. Teks panjang diperkecil agar muat di bar yang ada. Aturan berlaku berdasarkan jenis tombol dan awalan label, tanpa daftar kalimat khusus. Label dengan perintah format `@` tetap ditangani renderer asli; mode Jepang juga memakai tampilan asli.
+
+Ukuran bar dan area klik dipertahankan. Pembaruan choice tidak mengubah ukuran popup notifikasi, textbox, maupun pengaturan `DC2TYPatch.ini`.
 
 ## Batch
 
@@ -116,14 +138,15 @@ DisableBacklogTranslation=0
 - **Font & Render Scaling**: `DialogueRenderScale=74`, `DialogueAdvanceScale=62`, dan `DialogueSpaceScale=24` mengatur proporsi lebar font Latin agar proporsional dan tidak saling menumpuk.
 - **Redirection**: `EnableFileRedirection=1` mengalihkan pembacaan naskah ke folder terjemahan `id_Data\MES` atau `eng_data\MES` tanpa menimpa arsip asli game.
 - **Backlog Icons**: `ShowBacklogIcon=1` mempertahankan dan menyesuaikan rendering ikon pembicara di backlog game.
+- **Choice Cerita**: Spasi dan margin label `○` dirapikan otomatis pada mode terjemahan, tanpa opsi INI baru. Detail teknis tersedia di [Tata Letak Choice](https://github.com/SakuraSymphonyReTranslation/DC2TYMesTextTool_GUI-and-Patch/blob/master/DC2TYPatch%20a/CHOICE_LAYOUT.md).
 
-Petunjuk teknis patch dan build C++ tersedia di [README Patch](DC2TYPatch%20a/README.md).
+Petunjuk teknis patch dan build C++ tersedia di [README Patch](https://github.com/SakuraSymphonyReTranslation/DC2TYMesTextTool_GUI-and-Patch/blob/master/DC2TYPatch%20a/README.md).
 
 ## Validasi dan Encoding
 
 - Format teks skrip Circus dikodekan dalam **CP932 (Shift-JIS)**.
-- Karakter Latin di luar tabel dasar Shift-JIS dipetakan ke padanan yang aman (misalnya tanda hubung panjang `— → ―`, huruf beraksen `û → u`, `ë → e`, `é → e`, `à → a`). Karakter yang tidak valid akan ditolak secara aman dengan pesan error yang jelas pada log.
-- Penulisan berkas baru selalu dilakukan melalui file temporer dan divalidasi sebelum disimpan, untuk mencegah kerusakan file jika proses terhenti.
+- Beberapa karakter Latin dan tanda baca dipetakan ke padanan CP932 (misalnya tanda hubung panjang `— → ―`, huruf beraksen `û → u`, `ë → e`, `é → e`, `à → a`). Periksa hasil ekspor ulang untuk karakter lain yang tidak tersedia dalam CP932.
+- Hasil konversi ditulis langsung ke lokasi output. Gunakan file output terpisah, simpan cadangan MES asli, dan periksa panel log setelah impor.
 
 ## CLI
 
@@ -142,6 +165,9 @@ Dari folder executable (`bin\Release\net8.0-windows` atau folder hasil ekstrak R
 ## Hasil Verifikasi
 
 - Format ekspor dan impor naskah telah diverifikasi terhadap skenario asli DC2TY.
+- Audit **138 JSON terjemahan** menemukan **3 choice**, seluruhnya di `ty_myu02_a1_myu.json`; ketiganya cocok dengan label pada MES asli/aktif.
+- Impor JSON Indonesia ke MES lalu ekspor ulang mempertahankan ketiga label `○` beserta spasinya. Build Win32 Release dan tes layout choice lulus; ketiga label juga sudah diperiksa secara visual di game.
+- Ukuran dan tata letak textbox tetap sama pada adegan pengujian. Fungsi popup dan file INI tidak berubah; popup tidak diuji ulang secara visual pada sesi choice ini.
 - Executable referensi game yang diuji memiliki hash SHA-256:
 
 ```text
@@ -157,9 +183,12 @@ Dari root folder repositori:
 dotnet build -c Release
 ```
 
-Untuk build patch C++ (Visual Studio 2022 x86 Native Tools):
+Untuk build patch C++ (Visual Studio 2022 dengan komponen Desktop development with C++):
 
 ```powershell
-cd "DC2TYPatch a"
-build.bat
+cmake -S "DC2TYPatch a" -B "DC2TYPatch a/build-local" -G "Visual Studio 17 2022" -A Win32 -DDC2TY_BUILD_CHOICE_TESTS=ON
+cmake --build "DC2TYPatch a/build-local" --config Release
+ctest --test-dir "DC2TYPatch a/build-local" -C Release --output-on-failure
 ```
+
+Seluruh isi `DC2TYPatch a/build/` disertakan dalam repositori, termasuk paket `Released` dan artefak build. Cache CMake menyimpan path mesin pembuatnya; gunakan `build-local` yang baru untuk build di komputer lain. Binary baru berada di `build-local/Release`. Skrip lama `build.bat` menghapus folder `build` sebelum membangun ulang.

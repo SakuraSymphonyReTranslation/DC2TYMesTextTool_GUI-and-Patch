@@ -13,13 +13,16 @@ DC2TYPatch a/
 ├── icon.ico              # Game icon
 ├── src/
 │   ├── dc2typatch.cpp    # Main hook DLL patch code (injected version)
+│   ├── choice_layout.h  # Choice label normalization and bitmaps
 │   ├── launcher.cpp      # DC2TYLauncher launcher code (DLL injection + Locale Emulator)
 │   ├── launcher.rc       # Launcher resources (icon & metadata)
 │   ├── d3dx9_proxy.cpp   # Optional D3DX9 proxy
 │   └── dsound_proxy.cpp  # Optional DSound proxy
 ├── Detours/              # Microsoft Detours library
 ├── Locale-Emulator-2.5.0.1/ # Locale Emulator library
+├── tests/                # Layout tests and JSON/MES choice audit
 └── build/
+    ├── choice-layout/    # Win32 Release build and choice tests
     └── Released/         # Ready-to-use binaries (DC2TYLauncher.exe, DC2TYPatch.dll, etc.)
 ```
 
@@ -42,6 +45,8 @@ Tested reference executable SHA256:
 
 ## Patch Features & Configuration
 
+- **Story Choices `○`**:
+  The **v1.0.0 refresh, 17 October 2026** uses a 12 px left margin, proportional Arial text, and single visual spacing after the circle and between words. Long labels shrink to fit the bar. The rule uses story buttons and the `○` prefix, with no phrase whitelist. Bar dimensions, click areas, colors, and shadows continue to follow the game.
 - **Font Rendering & Advanced Scaling**:
   Configured via `DC2TYPatch.ini`:
   - `DialogueRenderScale=74`
@@ -55,14 +60,29 @@ Tested reference executable SHA256:
 - **Locale Emulator**:
   Integrated directly into the launcher for native Windows and Wine / Proton on Linux / Steam Deck.
 
-## Building (Visual Studio 2022, x86 Native Tools)
+### MES ↔ JSON Support
 
-From `DC2TYPatch a` directory:
+The GUI/CLI tool preserves `○` during export and import, including Batch mode. Use one ordinary space in JSON, for example `{ "message": "○ Panggil Bos" }`. The importer stores choice spaces as U+3000 for MES encryption; the exporter restores ordinary spaces, while the patch adjusts their visual width at rendering time.
+
+The choice renderer is active in translation mode (`Language=1` or `2`). Japanese mode and labels containing `@` formatting commands use the original renderer. There are no new INI settings or changes to notification popup or textbox size. Implementation and audit details are available in [Choice Layout](CHOICE_LAYOUT.md) (Indonesian).
+
+### Verification
+
+- An audit of 138 translated JSON files found 3 choices in `ty_myu02_a1_myu.json`, corresponding to the original and active MES files.
+- Indonesian JSON → MES → JSON conversion preserved all three labels and their spaces.
+- Win32 Release layout tests passed. All three choices were checked visually in-game and fit the bars with aligned circles.
+- The textbox stayed the same in the tested scene. Popup functions and the INI file are unchanged; popups were not visually retested in this session.
+
+## Building (Visual Studio 2022, Win32)
+
+Install **Desktop development with C++**, then run from the `DC2TYPatch a` directory:
 
 ```powershell
-cmake -S . -B build -A Win32
-cmake --build build --config Release
+cmake -S . -B build-local -G "Visual Studio 17 2022" -A Win32 -DDC2TY_BUILD_CHOICE_TESTS=ON
+cmake --build build-local --config Release
+ctest --test-dir build-local -C Release --output-on-failure
 ```
 
-Or run `build.bat`.
-Output binaries will be placed in `build/Release` or `build/Released`.
+New binaries appear in `build-local/Release`. The `DC2TY_BUILD_CHOICE_TESTS` option adds standalone layout checks and can be disabled for a regular build.
+
+The entire `build/` directory is included in the repository, including caches, generated artifacts, logs, and the `build/Released` package. Caches contain paths from the build machine, so a fresh build uses `build-local`. The legacy `build.bat` script deletes `build` before rebuilding.

@@ -13,13 +13,16 @@ DC2TYPatch a/
 ├── icon.ico              # Ikon game DC2TY
 ├── src/
 │   ├── dc2typatch.cpp    # Kode utama hook DLL patch (injected version)
+│   ├── choice_layout.h  # Normalisasi dan bitmap label choice
 │   ├── launcher.cpp      # Kode peluncur DC2TYLauncher (injeksi DLL + Locale Emulator)
 │   ├── launcher.rc       # Resource peluncur (ikon & metadata)
 │   ├── d3dx9_proxy.cpp   # Proxy D3DX9 opsional
 │   └── dsound_proxy.cpp  # Proxy DSound opsional
 ├── Detours/              # Microsoft Detours library
 ├── Locale-Emulator-2.5.0.1/ # Library Locale Emulator
+├── tests/                # Tes layout dan audit choice JSON/MES
 └── build/
+    ├── choice-layout/    # Build Win32 Release dan tes choice
     └── Released/         # Paket siap pakai (DC2TYLauncher.exe, DC2TYPatch.dll, dll)
 ```
 
@@ -42,6 +45,8 @@ Executable referensi yang diuji memiliki SHA256:
 
 ## Fitur Patch & Konfigurasi
 
+- **Choice Cerita `○`**:
+  Pembaruan **v1.0.0, 17 Oktober 2026** memakai margin kiri 12 px, font Arial proporsional, dan satu spasi visual setelah lingkaran maupun antarkata. Label panjang diperkecil hingga muat di bar. Aturan berdasarkan tombol cerita dan awalan `○`, tanpa daftar kalimat khusus. Ukuran bar, area klik, warna, dan bayangan tetap mengikuti game.
 - **Font Rendering & Advanced Scaling**:
   Diatur melalui `DC2TYPatch.ini`:
   - `DialogueRenderScale=74`
@@ -55,14 +60,29 @@ Executable referensi yang diuji memiliki SHA256:
 - **Locale Emulator**:
   Terintegrasi langsung di launcher untuk Windows native serta kompatibel dengan Wine / Proton pada Linux / Steam Deck.
 
-## Cara Build (Visual Studio 2022, x86 Native Tools)
+### Dukungan MES ↔ JSON
 
-Dari folder `DC2TYPatch a`:
+Tool GUI/CLI mempertahankan `○` pada ekspor dan impor, termasuk mode Batch. Tulis satu spasi biasa di JSON, misalnya `{ "message": "○ Panggil Bos" }`. Importer menyimpan spasi choice sebagai U+3000 agar aman untuk enkripsi MES; exporter mengembalikan spasi biasa, sedangkan patch merapikan jaraknya saat digambar.
+
+Renderer choice aktif pada mode terjemahan (`Language=1` atau `2`). Mode Jepang dan label dengan perintah format `@` menggunakan renderer asli. Tidak ada pengaturan INI baru, perubahan ukuran popup notifikasi, atau perubahan ukuran textbox. Detail implementasi dan hasil audit tersedia di [Tata Letak Choice](CHOICE_LAYOUT.md).
+
+### Hasil Verifikasi
+
+- Audit 138 JSON terjemahan menemukan 3 choice di `ty_myu02_a1_myu.json`, sesuai MES asli dan MES aktif.
+- Impor JSON Indonesia → MES → ekspor JSON mempertahankan ketiga label dan spasinya.
+- Tes layout Win32 Release lulus. Ketiga choice telah diperiksa secara visual di game dan muat di bar dengan lingkaran sejajar.
+- Textbox pada adegan pengujian tetap sama. Fungsi popup dan file INI tidak berubah; popup tidak diuji ulang secara visual pada sesi ini.
+
+## Cara Build (Visual Studio 2022, Win32)
+
+Pasang komponen **Desktop development with C++**, lalu jalankan dari folder `DC2TYPatch a`:
 
 ```powershell
-cmake -S . -B build -A Win32
-cmake --build build --config Release
+cmake -S . -B build-local -G "Visual Studio 17 2022" -A Win32 -DDC2TY_BUILD_CHOICE_TESTS=ON
+cmake --build build-local --config Release
+ctest --test-dir build-local -C Release --output-on-failure
 ```
 
-Atau jalankan skrip `build.bat`.
-Output binary akan dibuat di `build/Release` atau `build/Released`.
+Binary baru berada di `build-local/Release`. Opsi `DC2TY_BUILD_CHOICE_TESTS` menambahkan tes layout standalone dan dapat dinonaktifkan untuk build biasa.
+
+Seluruh isi `build/` disertakan dalam repositori, termasuk cache, artefak build, log, dan paket `build/Released`. Cache berisi path mesin pembuatnya, sehingga build baru memakai direktori `build-local`. Skrip lama `build.bat` menghapus folder `build` sebelum membangun ulang.
